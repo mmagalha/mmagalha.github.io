@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<title>
+  
+     Ansible K8s Onpremisses | 
+    mmagalha&#39;s Blog
+  
+</title><meta name="description" content="Marcos Magalhães, ou tão somente mmagalha"><meta name="author" content="mmagalha">
+
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="icon" href="/favicon-32x32.png " sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0c344b">
+<link rel="icon" href="/favicon.ico">
+
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-okaidia.min.css">
+    
+
+
+
+    
+        
+            <link rel="stylesheet" href="/dist/main.37ab3f61b95417873748.min.css">
+        
+    
+
+
+
+
+<link rel="canonical" href="https://mmagalha.me/post/ansible-k8s-onpremisses/"><meta property="og:title" content="Ansible K8s Onpremisses" />
+<meta property="og:description" content="Criando um cluster Kubernetes em infra on-premisses com Ansible Faz muito tempo que não escrevo nada e tenho me sentido na obrigação de devolver um pouco do que tenho aprendido em todos esses anos, sendo assim nada melhor do que falar de um assunto que, além de estar em alta, eu tenho me dedicado no momento.
+Sem mais delongas…
+Meu playbook está separado em 3 partes:
+ Criação das VMs no Proxmox usando Ansible ( o que será tratado nesse artigo ); Preparação das VMs para subir o cluster K8S usando Ansible Configuração do cluster K8S também com Ansible Configuração de alguns extras no cluster K8S (eu sei que eu falei que seriam 3 partes, SURPRESA … )  Na última década tenho me dedicado quase que exclusivamente ao VMware e de muitas formas acabei negligenciando outros hipervisos, mas como tenho me dedicado ao estudo de práticas de DevOps decidi que iria mudar meu “MINDSET” (não tenho a mínima ideia do que isso significa, mas vi o @Gomex usando e deve ser algo muito foda) e nas idas e vinda me deparei com o Proxmox uma distro baseada no meu querido Debian e que entrega uma séria de facilidades como VMs, Containers LXC, CEPH entre outros talvez um dia eu faça um artigo sobre ele." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mmagalha.me/post/ansible-k8s-onpremisses/" />
+<meta property="og:image" content="https://mmagalha.me/ansible.png" />
+<meta property="article:published_time" content="2020-06-08T22:03:42-03:00" />
+<meta property="article:modified_time" content="2020-06-08T22:03:42-03:00" />
+<meta itemprop="name" content="Ansible K8s Onpremisses">
+<meta itemprop="description" content="Criando um cluster Kubernetes em infra on-premisses com Ansible Faz muito tempo que não escrevo nada e tenho me sentido na obrigação de devolver um pouco do que tenho aprendido em todos esses anos, sendo assim nada melhor do que falar de um assunto que, além de estar em alta, eu tenho me dedicado no momento.
+Sem mais delongas…
+Meu playbook está separado em 3 partes:
+ Criação das VMs no Proxmox usando Ansible ( o que será tratado nesse artigo ); Preparação das VMs para subir o cluster K8S usando Ansible Configuração do cluster K8S também com Ansible Configuração de alguns extras no cluster K8S (eu sei que eu falei que seriam 3 partes, SURPRESA … )  Na última década tenho me dedicado quase que exclusivamente ao VMware e de muitas formas acabei negligenciando outros hipervisos, mas como tenho me dedicado ao estudo de práticas de DevOps decidi que iria mudar meu “MINDSET” (não tenho a mínima ideia do que isso significa, mas vi o @Gomex usando e deve ser algo muito foda) e nas idas e vinda me deparei com o Proxmox uma distro baseada no meu querido Debian e que entrega uma séria de facilidades como VMs, Containers LXC, CEPH entre outros talvez um dia eu faça um artigo sobre ele.">
+<meta itemprop="datePublished" content="2020-06-08T22:03:42-03:00" />
+<meta itemprop="dateModified" content="2020-06-08T22:03:42-03:00" />
+<meta itemprop="wordCount" content="871">
+<meta itemprop="image" content="https://mmagalha.me/ansible.png">
+
+
+
+<meta itemprop="keywords" content="ansible,proxmox," /><meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mmagalha.me/ansible.png"/>
+
+<meta name="twitter:title" content="Ansible K8s Onpremisses"/>
+<meta name="twitter:description" content="Criando um cluster Kubernetes em infra on-premisses com Ansible Faz muito tempo que não escrevo nada e tenho me sentido na obrigação de devolver um pouco do que tenho aprendido em todos esses anos, sendo assim nada melhor do que falar de um assunto que, além de estar em alta, eu tenho me dedicado no momento.
+Sem mais delongas…
+Meu playbook está separado em 3 partes:
+ Criação das VMs no Proxmox usando Ansible ( o que será tratado nesse artigo ); Preparação das VMs para subir o cluster K8S usando Ansible Configuração do cluster K8S também com Ansible Configuração de alguns extras no cluster K8S (eu sei que eu falei que seriam 3 partes, SURPRESA … )  Na última década tenho me dedicado quase que exclusivamente ao VMware e de muitas formas acabei negligenciando outros hipervisos, mas como tenho me dedicado ao estudo de práticas de DevOps decidi que iria mudar meu “MINDSET” (não tenho a mínima ideia do que isso significa, mas vi o @Gomex usando e deve ser algo muito foda) e nas idas e vinda me deparei com o Proxmox uma distro baseada no meu querido Debian e que entrega uma séria de facilidades como VMs, Containers LXC, CEPH entre outros talvez um dia eu faça um artigo sobre ele."/>
+
+</head>
+<body>
+    
+<nav class="navbar navbar-expand-md navbar-light bg-light fixed-top shadow-sm" id="navbar-main-menu">
+    <div class="container">
+        <a class="navbar-brand font-weight-bold" href="https://mmagalha.me">mmagalha&#39;s Blog</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="main-menu">
+            <ul class="navbar-nav ml-auto">
+                
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                
+                    <li class="nav-item"><a class="nav-link" href="/sobre/">Sobre</a></li>
+                
+            
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+    
+<main class="content-page container pt-7 pb-5">
+    
+    <div class="row">
+        <div class="col">
+            <article>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="meta text-muted mb-3">
+                            <p class="created text-muted text-uppercase font-weight-bold mb-1">June 8, 2020</p>
+                            <span class="mr-2"><i class="fas fa-book-open mr-2"></i></span>
+                            <span><i class="fas fa-clock mr-2"></i></span>
+                        </div>
+
+                        <h1>Ansible K8s Onpremisses</h1>
+
+                        <ul class="authors list-inline"><li class="list-inline-item mr-3">
+                    <div class="media author"><a href="/authors/mmagalha/" class="mr-3">
+                                    <picture>
+                                        <source srcset="/authors/mmagalha/image_hu54d05f3deda85a2455af6a27fe1e82cd_15370_64x0_resize_q75_box.jpg 1x, /authors/mmagalha/image_hu54d05f3deda85a2455af6a27fe1e82cd_15370_128x0_resize_q100_box.jpg 2x, /authors/mmagalha/image_hu54d05f3deda85a2455af6a27fe1e82cd_15370_192x0_resize_q100_box.jpg 3x">
+                                        <img src="/authors/mmagalha/image_hu54d05f3deda85a2455af6a27fe1e82cd_15370_64x0_resize_q75_box.jpg" class="rounded-circle" alt="mmagalha">
+                                    </picture>
+                                </a><div class="media-body">
+                            <h5 class="name my-0"><a href="/authors/mmagalha/" class="small">mmagalha</a>
+                            </h5><p class="social small text-muted">
+                                    <a href="https://twitter.com/@mmagalha">@mmagalha</a>
+                                </p></div>
+                    </div>
+                </li></ul>
+                    </div>
+                </div><div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="content">
+                            <h2 id="criando-um-cluster-kubernetes-em-infra-on-premisses-com-ansible">Criando um cluster Kubernetes em infra on-premisses com Ansible</h2>
+<p>Faz muito tempo que não escrevo nada e tenho me sentido na obrigação de devolver um pouco do que tenho aprendido em todos esses anos, sendo assim nada melhor do que falar de um assunto que, além de estar em alta, eu tenho me dedicado no momento.</p>
+<p>Sem mais delongas…</p>
+<p>Meu playbook está separado em 3 partes:</p>
+<ul>
+<li>Criação das VMs no Proxmox usando Ansible ( o que será tratado nesse artigo );</li>
+<li>Preparação das VMs para subir o cluster K8S usando Ansible</li>
+<li>Configuração do cluster K8S também com Ansible</li>
+<li>Configuração de alguns extras no cluster K8S (eu sei que eu falei que seriam 3 partes, SURPRESA … )</li>
+</ul>
+<p>Na última década tenho me dedicado quase que exclusivamente ao VMware e de muitas formas acabei negligenciando outros hipervisos, mas como tenho me dedicado ao estudo de práticas de DevOps decidi que iria mudar meu “MINDSET” (não tenho a mínima ideia do que isso significa, mas vi o @Gomex usando e deve ser algo muito foda) e nas idas e vinda me deparei com o Proxmox uma distro baseada no meu querido Debian e que entrega uma séria de facilidades como VMs, Containers LXC, CEPH entre outros talvez um dia eu faça um artigo sobre ele.</p>
+<p>Mas a estrela da noite é o Ansible, que segundo a Red Hat é uma ferramenta para automação que possui a capacidade de gerenciar configurações, realizar deploy de aplicações e até infraestrutura por não possuir agentes seu uso é muito simples além de usar em seus playbooks yaml e onde há yaml há vida. Para quem deseja saber um pouco mais sobre o Ansible aconselho os vídeos do @Badtux no canal do LunuxTips no YouTube aqui e aqui.</p>
+<p>Bla, bla, bla e até agora nada de útil …</p>
+<p>Então abaixo está a estrutura simplificada dos diretórios e arquivos que criei</p>
+<p>no momento iremos nos concentrar no bloco install-vms e seus arquivos</p>
+<pre><code>├── install-vms
+├── tasks
+| └── main.yml
+└── vars
+└── main.yml
+</code></pre>
+<p>no primeiro arquivo o main.yml temos as tarefas de criação e customização das máquinas virtuais no ambiente Proxmox, esa rule usa o módulo do proxmox para clonar as VMs e iniciá-las ( <a href="https://docs.ansible.com/ansible/latest/modules/proxmox_kvm_module.html">https://docs.ansible.com/ansible/latest/modules/proxmox_kvm_module.html</a> ), porém para setar as configurações do cloud-init foi necessário passar o comando diretamente, no final o pulo do gato um pequeno delay para que as outras rules aguardem as VMs subir.</p>
+<h1 id="tasks-file-for-install-vm">tasks file for install-vm</h1>
+<pre><code>
+- name: Clone VMs
+  proxmox_kvm:
+    api_user    : &quot;{{ pve_user }}&quot;
+    api_password: &quot;{{ pve_pass }}&quot;
+    api_host    : &quot;{{ pve_host }}&quot;
+    clone       : ubnttpl   # The VM source
+    name        : k8s0{{ item }}  # The target VM name
+    newid       : 100{{ item }}
+    node        : pve01
+    storage     : Local-01
+    format      : qcow2
+    timeout     : 500
+    state       : started
+  loop: &quot;{{ vm_id }}&quot;
+
+- name: Set VM IP
+  command:
+    qm set 100{{ item }} --ipconfig0 ip=172.32.0.22{{ item }}/24,gw=172.32.0.254
+  loop: &quot;{{ vm_id }}&quot;
+  ignore_errors: False
+  
+- name: start VMs
+  proxmox_kvm:
+    api_user    : &quot;{{ pve_user }}&quot;
+    api_password: &quot;{{ pve_pass }}&quot;
+    api_host    : &quot;{{ pve_host }}&quot;
+    vmid        : 100{{ item }}
+    state       : started
+  loop: &quot;{{ vm_id }}&quot;
+
+- name: Wait 600 seconds for target connection to become reachable/usable
+  wait_for_connection:
+        delay: 600
+</code></pre>
+<p>no Arquivo acima temos algumas variáveis que são de extrema importância e que foram setadas no arquivo main.yml dentro da pasta vars</p>
+<ul>
+<li>pve_host: define o host de controle Proxmox, em resumo o IP da API</li>
+<li>pve_user: Usuário com permissões para criar VMs no Proxmox</li>
+<li>pve_pass: A senha do “cara ai de cima” nesse caso a senha não está declarada no arquivo e sim será passada através de uma variável de ambiente</li>
+<li>vm_id: Uma lista de “IDs” para as VMs que servirão de índice para criar e nomear as VMs do nosso cluster</li>
+<li>vm_name: “nessa variável criei um prefixo que será usado para nomear as VMs.</li>
+</ul>
+<h1 id="vars-file-for-install-vms">vars file for install-vms</h1>
+<pre><code>pve_host: pve01
+pve_user: root@pam
+pve_pass: &quot;{{ lookup('env','PVE_PASS') }}&quot;
+vm_id:
+- 1
+- 2
+- 3
+- 4
+vm_name: &quot;k8s0&quot;
+
+</code></pre>
+<p>O arquivo principal do playbook está abaixo e realiza as operações de criar as VMs e configurá-las;</p>
+<pre><code>- hosts: pve
+  user: root
+  gather_facts: no
+  pre_tasks:
+  - name: 'atualizando repo'
+    raw: 'apt-get update'
+  - name: 'instalando o python'
+    raw: 'apt-get install -y python3 python3-proxmoxer'
+  roles:
+  - { role: install-vms, tags: [&quot;install_pve_vms&quot;]}
+
+- hosts: k8s
+  become: yes
+  user: mmagalha
+  gather_facts: no
+  pre_tasks:
+  - name: 'atualizando repo'
+    raw: 'apt-get update'
+  - name: 'instalando o python'
+    raw: 'apt-get install -y python3'
+  roles:
+  - { role: install-k8s, tags: [&quot;install_k8s_role&quot;]}
+
+- hosts: k8s_master
+  become: yes
+  user: mmagalha
+  roles:
+  - { role: create-cluster, tags: [&quot;create_cluster_role&quot;]}
+
+- hosts: k8s_workers
+  become: yes
+  user: mmagalha
+  roles:
+  - { role: join-workers, tags: [&quot;join_workers_role&quot;]} 
+</code></pre>
+<p>Neste pequeno texto tratamos da automação do processo de criação das VMs do nosso cluster no Proxmox, não vou me alongar explicando o resto do código, pois o Jeferson já mostrou isso tudo com maestria e vc pode encontrar aqui e o código completo você pode encontrar na minha conta do github aqui</p>
+<p>Então …</p>
+<p>Sabe a tal quarta parte a instalação dos extras, vai ficar para um proximo post e que me forçará a escrever um outro artigo lá vamos instalar:</p>
+<ul>
+<li>CNI ( weavenet )</li>
+<li>MetalLB ( um fantástico load balance para infras on-premisses )</li>
+<li>ISTIO ( nosso queridinho )</li>
+</ul>
+
+                        </div><div class="tags my-3"><a class="badge badge-pill badge-light border mr-2" href="/tags/ansible">
+                                    <i class="fas fa-tag mr-2"></i>ansible
+                                </a><a class="badge badge-pill badge-light border mr-2" href="/tags/proxmox">
+                                    <i class="fas fa-tag mr-2"></i>proxmox
+                                </a></div><ul class="share nav my-3 justify-content-end">
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" href="https://twitter.com/intent/tweet?url=https%3a%2f%2fmmagalha.me%2fpost%2fansible-k8s-onpremisses%2f&text=Ansible%20K8s%20Onpremisses">
+              <i class="fa-fw fab fa-twitter"></i>
+          </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" href="https://www.linkedin.com/shareArticle?url=https%3a%2f%2fmmagalha.me%2fpost%2fansible-k8s-onpremisses%2f&title=Ansible%20K8s%20Onpremisses">
+                <i class="fa-fw fab fa-linkedin-in"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fmmagalha.me%2fpost%2fansible-k8s-onpremisses%2f&t=Ansible%20K8s%20Onpremisses">
+                <i class="fa-fw fab fa-facebook-f"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" href="https://reddit.com/submit?url=https%3a%2f%2fmmagalha.me%2fpost%2fansible-k8s-onpremisses%2f&title=Ansible%20K8s%20Onpremisses">
+                <i class="fa-fw fab fa-reddit-alien"></i>
+            </a>
+        </li>
+    </nav>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        
+                    </div>
+                </div><div class="row justify-content-center my-3">
+                    <div class="col-lg-8">
+                        <div id="commento"></div>
+                        <script src="https://commento.io"></script>
+                    </div>
+                </div></article>
+        </div>
+    </div>
+
+    
+</main>
+
+
+    <footer class="footer text-center bg-dark py-6">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <ul class="list-inline">
+                    <li class="list-inline-item"><a href="https://mmagalha.me/index.xml" rel="alternate" type="application/rss+xml" class="icons d-block">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a></li><li class="list-inline-item">
+                        <a href="mailto:mmagalha@gmail.com" class="icons d-block">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li><li class="list-inline-item">
+                            <a href="https://facebook.com/mmagalha" class="icons d-block">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li><li class="list-inline-item">
+                            <a href="https://github.com/mmagalha" class="icons d-block">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li><li class="list-inline-item">
+                            <a href="https://instagram.com/mmagalha" class="icons d-block">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-instagram fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li><li class="list-inline-item">
+                            <a href="https://linkedin.com/in/mmagalha" class="icons d-block">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li><li class="list-inline-item">
+                            <a href="https://twitter.com/mmagalha" class="icons d-block">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                </ul>
+
+                <p class="text-muted">
+                    
+                        Copyright © 2008–2020, Marcos Magalhães; all rights reserved.
+                    
+                </p>
+
+                <p class="text-muted">
+                Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with <a href="https://github.com/puresyntax71/hugo-theme-chunky-poster" target="_blank">Chunky Poster</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    
+    
+        
+            <script src="/dist/main.d608eadfe5ac0688902e.min.js"></script>
+        
+    
+
+
+
+<script>
+    window.Prism = window.Prism || {};
+    window.Prism.manual = true;
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+
+
+
+
+
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-XXXX', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

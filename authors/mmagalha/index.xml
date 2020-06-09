@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mmagalha&#39;s Blog</title>
+    <link>https://mmagalha.me/authors/mmagalha/</link>
+    <description>Recent content on mmagalha&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-BR</language>
+    <copyright>Copyright © 2008–2020, Marcos Magalhães; all rights reserved.</copyright>
+    <lastBuildDate>Mon, 08 Jun 2020 22:03:42 -0300</lastBuildDate>
+    
+	<atom:link href="https://mmagalha.me/authors/mmagalha/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Ansible K8s Onpremisses</title>
+      <link>https://mmagalha.me/post/ansible-k8s-onpremisses/</link>
+      <pubDate>Mon, 08 Jun 2020 22:03:42 -0300</pubDate>
+      
+      <guid>https://mmagalha.me/post/ansible-k8s-onpremisses/</guid>
+      <description>Criando um cluster Kubernetes em infra on-premisses com Ansible Faz muito tempo que não escrevo nada e tenho me sentido na obrigação de devolver um pouco do que tenho aprendido em todos esses anos, sendo assim nada melhor do que falar de um assunto que, além de estar em alta, eu tenho me dedicado no momento.
+Sem mais delongas…
+Meu playbook está separado em 3 partes:
+ Criação das VMs no Proxmox usando Ansible ( o que será tratado nesse artigo ); Preparação das VMs para subir o cluster K8S usando Ansible Configuração do cluster K8S também com Ansible Configuração de alguns extras no cluster K8S (eu sei que eu falei que seriam 3 partes, SURPRESA … )  Na última década tenho me dedicado quase que exclusivamente ao VMware e de muitas formas acabei negligenciando outros hipervisos, mas como tenho me dedicado ao estudo de práticas de DevOps decidi que iria mudar meu “MINDSET” (não tenho a mínima ideia do que isso significa, mas vi o @Gomex usando e deve ser algo muito foda) e nas idas e vinda me deparei com o Proxmox uma distro baseada no meu querido Debian e que entrega uma séria de facilidades como VMs, Containers LXC, CEPH entre outros talvez um dia eu faça um artigo sobre ele.</description>
+    </item>
+    
+  </channel>
+</rss>

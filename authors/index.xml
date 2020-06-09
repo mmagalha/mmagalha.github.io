@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Authors on mmagalha&#39;s Blog</title>
+    <link>https://mmagalha.me/authors/</link>
+    <description>Recent content in Authors on mmagalha&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-BR</language>
+    <copyright>Copyright © 2008–2020, Marcos Magalhães; all rights reserved.</copyright>
+    <lastBuildDate>Mon, 08 Jun 2020 22:03:42 -0300</lastBuildDate>
+    
+	<atom:link href="https://mmagalha.me/authors/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title></title>
+      <link>https://mmagalha.me/authors/mmagalha/</link>
+      <pubDate>Mon, 08 Jun 2020 22:03:42 -0300</pubDate>
+      
+      <guid>https://mmagalha.me/authors/mmagalha/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
